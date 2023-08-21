@@ -3,12 +3,31 @@
  */
 package crud.java;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+
 public class App {
     public String getGreeting() {
         return "Hello World!";
     }
 
+    protected Properties loadDbConnectionProps() {
+        Properties props = new Properties();
+        try {
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("database.properties");
+            props.load(inputStream);
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+
+        return props;
+    }
+
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        App app = new App();
+        System.out.println(app.getGreeting());
+        app.loadDbConnectionProps();
     }
 }

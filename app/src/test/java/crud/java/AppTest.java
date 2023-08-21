@@ -6,9 +6,24 @@ package crud.java;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Properties;
+
 class AppTest {
     @Test void appHasAGreeting() {
         App classUnderTest = new App();
         assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+    }
+
+    @Test void appLoadDbConnectionProps() {
+        App app = new App();
+
+        Properties expected = new Properties();
+        expected.setProperty("db.url", "jdbc:mysql://localhost:3306/classicmodels");
+        expected.setProperty("db.username", "user");
+        expected.setProperty("db.password", "password");
+
+        Properties result = app.loadDbConnectionProps();
+
+        assertEquals(expected.getProperty("db.url"), result.getProperty("db.url"));
     }
 }

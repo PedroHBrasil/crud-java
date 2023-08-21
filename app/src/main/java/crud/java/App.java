@@ -5,6 +5,9 @@ package crud.java;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Properties;
 
 
@@ -13,21 +16,54 @@ public class App {
         return "Hello World!";
     }
 
+
+    protected Connection getDbConnection() {
+        Properties connectionProps = this.loadDbConnectionProps();
+
+        String dbUrl = connectionProps.getProperty("db.url");
+        String dbUsr = connectionProps.getProperty("db.user");
+        String dbPsw = connectionProps.getProperty("db.password");
+
+        Connection connection = null;
+
+        try {
+            connection = DriverManager.getConnection(dbUrl, dbUsr, dbPsw);
+            System.out.println("Connected to database.");
+
+        } catch (SQLException e) {
+            System.out.println("Failed to connect to database: " + e.getMessage());
+        }
+
+        return connection;
+    }
+
     protected Properties loadDbConnectionProps() {
         Properties props = new Properties();
         try {
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("database.properties");
             props.load(inputStream);
         } catch (IOException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
         return props;
     }
 
+    protected void closeDbConnection(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+                System.out.println("Closed database connection.");
+            } catch (SQLException e) {
+                System.out.println("Error while closing the connection: " + e.getMessage());
+            }
+        }
+    }
+
     public static void main(String[] args) {
         App app = new App();
         System.out.println(app.getGreeting());
-        app.loadDbConnectionProps();
+        Connection connection = app.getDbConnection();
+        app.closeDbConnection(connection);
     }
 }

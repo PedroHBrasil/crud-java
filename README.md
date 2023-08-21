@@ -4,6 +4,6 @@ CRUD CLI application that uses a MySQL database and Java.
 
 ## Tasks
 
- - [ ] Database connection
+ - [x] Database connection
  - [ ] CRUD functions
  - [ ] CLI

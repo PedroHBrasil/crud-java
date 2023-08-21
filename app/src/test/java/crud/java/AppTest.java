@@ -6,6 +6,7 @@ package crud.java;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.sql.Connection;
 import java.util.Properties;
 
 class AppTest {
@@ -25,5 +26,17 @@ class AppTest {
         Properties result = app.loadDbConnectionProps();
 
         assertEquals(expected.getProperty("db.url"), result.getProperty("db.url"));
+        // assertEquals(expected.getProperty("db.username"), result.getProperty("db.username"));
+        // assertEquals(expected.getProperty("db.password"), result.getProperty("db.password"));
+    }
+
+    @Test void appGetDbConnection() {
+        App app = new App();
+
+        Connection result = app.getDbConnection();
+
+        assertNotNull(result, "connection to database failed");
+
+        app.closeDbConnection(result);
     }
 }

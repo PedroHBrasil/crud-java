@@ -10,10 +10,6 @@ import java.sql.Connection;
 import java.util.Properties;
 
 class AppTest {
-    @Test void appHasAGreeting() {
-        App classUnderTest = new App();
-        assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
-    }
 
     @Test void appLoadDbConnectionProps() {
         App app = new App();

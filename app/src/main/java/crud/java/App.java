@@ -12,10 +12,8 @@ import java.util.Properties;
 
 
 public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
 
+    // DB CONNECTION
 
     protected Connection getDbConnection() {
         Properties connectionProps = this.loadDbConnectionProps();
@@ -62,7 +60,6 @@ public class App {
 
     public static void main(String[] args) {
         App app = new App();
-        System.out.println(app.getGreeting());
         Connection connection = app.getDbConnection();
         app.closeDbConnection(connection);
     }

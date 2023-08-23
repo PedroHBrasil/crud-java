@@ -8,6 +8,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.List;
 
@@ -42,6 +43,18 @@ public class App {
         }
 
         return this.dbTables;
+    }
+
+    protected List<String> getTableColMetadata(int iTable, String metadataType) {
+        List<String> tableColsNames = new ArrayList<String>();
+        try {
+            ResultSet tableColsSet = this.getTableColsSet(iTable);
+            tableColsNames = this.resultSetToList(tableColsSet, metadataType);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return tableColsNames;
     }
 
     protected List<String> getTableColNames(int iTable) {
@@ -100,11 +113,11 @@ public class App {
         return tableColsSet;
     }
 
-    protected List<String> resultSetToList(ResultSet resultSet, String resultId) throws SQLException {
+    protected List<String> resultSetToList(ResultSet resultSet, String metadataType) throws SQLException {
         ArrayList<String> resultList = new ArrayList<String>();
         resultSet.beforeFirst();
         while (resultSet.next()) {
-            resultList.add(resultSet.getString(resultId));
+            resultList.add(resultSet.getString(metadataType));
         }
 
         return resultList;
@@ -173,28 +186,64 @@ public class App {
     private final String createTemplate = "INSERT INTO %s (%s) VALUES (%s)";
 
     protected void create(Scanner cliSc, int iTable) {
-        String tableName = this.dbTables.get(iTable);
-        List<String> tableColsNames = this.getTableColNames(iTable);
-        List<String> tableColsTypes = this.getTableColTypes(iTable);
-        List<String> tableColsSizes = this.getTableColSizes(iTable);
-        List<String> values = this.getInsertValues(cliSc, tableColsNames, tableColsTypes, tableColsSizes);
+        HashMap<String, String> values = this.getInsertValues(cliSc, iTable);
     }
 
-    private final String colDisplayTemplate = "%s - %s[%s]: ";
+    protected HashMap<String, String> getInsertValues(Scanner cliSc, int iTable) {
+        String tableName = this.dbTables.get(iTable);
+        List<String> tableColsNames = this.getTableColMetadata(iTable, "COLUMN_NAME");
+        List<String> tableColsTypes = this.getTableColMetadata(iTable, "TYPE_NAME");
+        List<String> tableColsSizes = this.getTableColMetadata(iTable, "COLUMN_SIZE");
+        List<String> tableColsNulls = this.getTableColMetadata(iTable, "NULLABLE");
+        List<String> tableColsAutos = this.getTableColMetadata(iTable, "IS_AUTOINCREMENT");
 
-    protected List<String> getInsertValues(Scanner cliSc, List<String> tableColsNames, List<String> tableColsTypes, List<String> tableColsSizes) {
-        ArrayList<String> values = new ArrayList<String>();
-        System.out.println("Enter the values of the new item.");
-        for (int i = 0; i < tableColsNames.size() && i < tableColsTypes.size(); i++) {
-            String colName = tableColsNames.get(i);
-            String colType = tableColsTypes.get(i);
-            String colSize = tableColsSizes.get(i);
-            System.out.print(String.format(colDisplayTemplate, colName, colType, colSize));
-            String value = cliSc.next();
-            values.add(value);
-        }
+        HashMap<String, String> values = new HashMap<String, String>();
+
+        // Gathers data to insert
+        int createInput = 0;
+        do {
+            List<String> effectiveColsNames = displayInsertMenu(tableName, tableColsNames, tableColsTypes, tableColsSizes, tableColsNulls, tableColsAutos, values);
+            System.out.print("Enter your choice: ");
+            createInput = cliSc.nextInt();
+            if (createInput > 0) {
+                String colName = effectiveColsNames.get(createInput-1);
+                this.readInsertValue(cliSc, colName, values);
+            }
+        } while (createInput > 0);
+
+
 
         return values;
+    }
+
+    private final String colDisplayTemplate = "\t%d: %s - %s[%s] %s: %s";
+
+    protected List<String> displayInsertMenu(String tableName, List<String> tableColsNames, List<String> tableColsTypes, List<String> tableColsSizes, List<String> tableColsNulls, List<String> tableColsAutos, HashMap<String, String> values) {
+        System.out.println("For table '"+ tableName + "', choose a column to enter a value for:");
+        System.out.println("\t-1: CANCEL");
+        System.out.println("\t0: OK");
+        List<String> colsNamesEffective = new ArrayList<String>();
+        for (int i = 0; i < tableColsNames.size(); i++) {
+            boolean isColAuto = tableColsAutos.get(i).equals("YES");
+            if (!isColAuto) {
+                String colName = tableColsNames.get(i);
+                String colType = tableColsTypes.get(i);
+                String colSize = tableColsSizes.get(i);
+                String colNull = tableColsNulls.get(i).equals("1") ? "optional" : "required";
+                String colValue = values.containsKey(colName) ? values.get(colName) : "";
+                String colDisplay = String.format(colDisplayTemplate, (colsNamesEffective.size()+1), colName, colType, colSize, colNull, colValue);
+                System.out.println(colDisplay);
+                colsNamesEffective.add(colName);
+            }
+        }
+
+        return colsNamesEffective;
+    }
+
+    protected void readInsertValue(Scanner cliSc, String colName, HashMap<String, String> values) {
+        System.out.print("Enter the value for " + colName + ": ");
+        String valueInput = cliSc.next();
+        values.put(colName, valueInput);
     }
 
     protected void read(int iTable) {

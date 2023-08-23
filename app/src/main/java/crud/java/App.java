@@ -20,6 +20,7 @@ public class App {
     // DB Metadata
 
     protected List<String> getDbTables(Connection connection) {
+        this.dbTables = new ArrayList<String>();
         try {
             // Aborts if connection is closed
             if (connection.isClosed()) {
@@ -34,18 +35,79 @@ public class App {
             String[] types = { "TABLE" };
 
             ResultSet dbTablesSet = dbMeta.getTables(catalog, schemaPattern, tableNamePattern, types);
-            dbTablesSet.beforeFirst();
-            dbTablesSet.next();
-            this.dbTables = new ArrayList<String>();
-            while (!dbTablesSet.isAfterLast()) {
-                this.dbTables.add(dbTablesSet.getString("TABLE_NAME"));
-                dbTablesSet.next();
-            }
+
+            this.dbTables = this.resultSetToList(dbTablesSet, "TABLE_NAME");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
         return this.dbTables;
+    }
+
+    protected List<String> getTableColNames(int iTable) {
+        List<String> tableColsNames = new ArrayList<String>();
+        try {
+            ResultSet tableColsSet = this.getTableColsSet(iTable);
+            tableColsNames = this.resultSetToList(tableColsSet, "COLUMN_NAME");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return tableColsNames;
+    }
+
+    protected List<String> getTableColTypes(int iTable) {
+        List<String> tableColsTypes = new ArrayList<String>();
+        try {
+            ResultSet tableColsSet = this.getTableColsSet(iTable);
+            tableColsTypes = this.resultSetToList(tableColsSet, "TYPE_NAME");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return tableColsTypes;
+    }
+
+    protected List<String> getTableColSizes(int iTable) {
+        List<String> tableColsTypes = new ArrayList<String>();
+        try {
+            ResultSet tableColsSet = this.getTableColsSet(iTable);
+            tableColsTypes = this.resultSetToList(tableColsSet, "COLUMN_SIZE");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return tableColsTypes;
+    }
+
+    // DB Metadata - util
+
+    protected ResultSet getTableColsSet(int iTable) throws SQLException{
+        ResultSet tableColsSet = null;
+        try {
+            DatabaseMetaData dbMeta = this.dbCon.getCon().getMetaData();
+
+            String catalog = this.dbCon.getConProps().getProperty("db.name");
+            String schemaPattern = null;
+            String tableNamePattern = this.dbTables.get(iTable);
+            String columnNamePattern = null;
+
+            tableColsSet = dbMeta.getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return tableColsSet;
+    }
+
+    protected List<String> resultSetToList(ResultSet resultSet, String resultId) throws SQLException {
+        ArrayList<String> resultList = new ArrayList<String>();
+        resultSet.beforeFirst();
+        while (resultSet.next()) {
+            resultList.add(resultSet.getString(resultId));
+        }
+
+        return resultList;
     }
 
     // CLI - Main Menu
@@ -81,7 +143,7 @@ public class App {
             crudInput = cliSc.nextInt();
             switch (crudInput) {
                 case 1:
-                    this.create(iTable);
+                    this.create(cliSc, iTable);
                     break;
                 case 2:
                     this.read(iTable);
@@ -109,10 +171,31 @@ public class App {
 
     // CRUD
 
-    String createTemplate = "INSERT INTO %s VALUES %s";
+    String createTemplate = "INSERT INTO %s (%s) VALUES (%s)";
 
-    protected void create(int iTable) {
+    protected void create(Scanner cliSc, int iTable) {
+        String tableName = this.dbTables.get(iTable);
+        List<String> tableColsNames = this.getTableColNames(iTable);
+        List<String> tableColsTypes = this.getTableColTypes(iTable);
+        List<String> tableColsSizes = this.getTableColSizes(iTable);
+        List<String> values = this.getInsertValues(cliSc, tableColsNames, tableColsTypes, tableColsSizes);
+    }
 
+    String colDisplayTemplate = "%s - %s[%s]: ";
+
+    protected List<String> getInsertValues(Scanner cliSc, List<String> tableColsNames, List<String> tableColsTypes, List<String> tableColsSizes) {
+        ArrayList<String> values = new ArrayList<String>();
+        System.out.println("Enter the values of the new item.");
+        for (int i = 0; i < tableColsNames.size() && i < tableColsTypes.size(); i++) {
+            String colName = tableColsNames.get(i);
+            String colType = tableColsTypes.get(i);
+            String colSize = tableColsSizes.get(i);
+            System.out.print(String.format(colDisplayTemplate, colName, colType, colSize));
+            String value = cliSc.next();
+            values.add(value);
+        }
+
+        return values;
     }
 
     protected void read(int iTable) {

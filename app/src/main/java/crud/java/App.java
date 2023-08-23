@@ -3,64 +3,110 @@
  */
 package crud.java;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Properties;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.List;
 
 
 public class App {
 
-    // DB CONNECTION
+    private DbConnector dbCon;
+    private List<String> dbTables;
 
-    protected Connection getDbConnection() {
-        Properties connectionProps = this.loadDbConnectionProps();
+    // DB Metadata
 
-        String dbUrl = connectionProps.getProperty("db.url");
-        String dbUsr = connectionProps.getProperty("db.user");
-        String dbPsw = connectionProps.getProperty("db.password");
-
-        Connection connection = null;
-
+    protected List<String> getDbTables(Connection connection) {
         try {
-            connection = DriverManager.getConnection(dbUrl, dbUsr, dbPsw);
-            System.out.println("Connected to database.");
+            // Aborts if connection is closed
+            if (connection.isClosed()) {
+                return null;
+            }
+            // Gets an array of strings, where each string is the name of a database table
+            DatabaseMetaData dbMeta = connection.getMetaData();
 
+            String catalog = this.dbCon.getConProps().getProperty("db.name");
+            String schemaPattern = null;
+            String tableNamePattern = null;
+            String[] types = { "TABLE" };
+
+            ResultSet dbTablesSet = dbMeta.getTables(catalog, schemaPattern, tableNamePattern, types);
+            dbTablesSet.beforeFirst();
+            dbTablesSet.next();
+            this.dbTables = new ArrayList<String>();
+            for (int i = 1; !dbTablesSet.isAfterLast(); i++) {
+                this.dbTables.add(dbTablesSet.getString("TABLE_NAME"));
+                dbTablesSet.next();
+            }
         } catch (SQLException e) {
-            System.out.println("Failed to connect to database: " + e.getMessage());
-        }
-
-        return connection;
-    }
-
-    protected Properties loadDbConnectionProps() {
-        Properties props = new Properties();
-        try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("database.properties");
-            props.load(inputStream);
-        } catch (IOException e) {
             System.out.println(e.getMessage());
         }
 
-        return props;
+        return this.dbTables;
     }
 
-    protected void closeDbConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-                System.out.println("Closed database connection.");
-            } catch (SQLException e) {
-                System.out.println("Error while closing the connection: " + e.getMessage());
-            }
+    // CLI
+
+    protected void displayMainMenu() {
+        System.out.println("\nChoose one of the following tables by number to perform operations on or enter '0' to quit.");
+        System.out.println("\t0: QUIT");
+        for (int i = 0; i < this.dbTables.size(); i++) {
+            System.out.println("\t" + (i+1) + ": " + this.dbTables.get(i));
         }
     }
 
+    // CRUD
+
+    String createTemplate = "INSERT INTO %s VALUES %s";
+
+    protected void create(Connection connection, String table, boolean persist) throws SQLException {
+        // Aborts if connection is closed
+        if (connection.isClosed()) {
+            return;
+        }
+        // Gets user input, depending on chosen table
+        
+    }
+
+    protected String getColumnsInput(String table) {
+
+        return "";
+    }
+
+    protected void read(Connection connection, String table, boolean persist) {
+        
+    }
+
+    protected void update(Connection connection, String table, boolean persist) {
+        
+    }
+
+    protected void delete(Connection connection, String table, boolean persist) {
+        
+    }
+
+    private void run() {
+        this.dbCon = new DbConnector();
+        this.getDbTables(this.dbCon.getCon());
+
+        int input = 0;
+        Scanner cliScanner = new Scanner(System.in);
+        do {
+            this.displayMainMenu();
+            System.out.print("Enter your choice: ");
+            input = cliScanner.nextInt();
+        } while (input != 0);
+
+        cliScanner.close();
+        this.dbCon.closeDbConnection();
+    }
+
     public static void main(String[] args) {
+        System.out.println("Welcome to my CRUD-Java CLI tool!");
         App app = new App();
-        Connection connection = app.getDbConnection();
-        app.closeDbConnection(connection);
+        app.run();
     }
 }

@@ -44,3 +44,9 @@ tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+
+
+run {
+    // Allows communication between user and the application (CLI inputs)
+    standardInput = System.in
+}

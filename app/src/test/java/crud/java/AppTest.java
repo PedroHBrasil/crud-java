@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Properties;
 
 class AppTest {
@@ -15,24 +16,32 @@ class AppTest {
         App app = new App();
 
         Properties expected = new Properties();
-        expected.setProperty("db.url", "jdbc:mysql://localhost:3306/classicmodels");
+        expected.setProperty("db.vendor", "mysql");
+        expected.setProperty("db.ip", "localhost");
+        expected.setProperty("db.port", "3306");
+        expected.setProperty("db.name", "classicmodels");
         expected.setProperty("db.username", "user");
         expected.setProperty("db.password", "password");
 
         Properties result = app.loadDbConnectionProps();
 
-        assertEquals(expected.getProperty("db.url"), result.getProperty("db.url"));
+        assertEquals(expected.getProperty("db.vendor"), result.getProperty("db.vendor"));
+        assertEquals(expected.getProperty("db.ip"), result.getProperty("db.ip"));
+        assertEquals(expected.getProperty("db.port"), result.getProperty("db.port"));
+        assertEquals(expected.getProperty("db.name"), result.getProperty("db.name"));
         // assertEquals(expected.getProperty("db.username"), result.getProperty("db.username"));
         // assertEquals(expected.getProperty("db.password"), result.getProperty("db.password"));
     }
 
-    @Test void appGetDbConnection() {
+    @Test void appGetDbConnection() throws SQLException {
         App app = new App();
 
-        Connection result = app.getDbConnection();
+        Connection result = app.setDbConnection();
 
         assertNotNull(result, "connection to database failed");
 
         app.closeDbConnection(result);
+
+        assertTrue(result.isClosed());
     }
 }

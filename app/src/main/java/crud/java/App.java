@@ -120,7 +120,6 @@ public class App {
             input = cliSc.nextInt();
             if (input != 0) {
                 this.runCrudMenu(cliSc, input-1);
-                input = cliSc.nextInt();
             }
         } while (input != 0);
     }
@@ -171,7 +170,7 @@ public class App {
 
     // CRUD
 
-    String createTemplate = "INSERT INTO %s (%s) VALUES (%s)";
+    private final String createTemplate = "INSERT INTO %s (%s) VALUES (%s)";
 
     protected void create(Scanner cliSc, int iTable) {
         String tableName = this.dbTables.get(iTable);
@@ -181,7 +180,7 @@ public class App {
         List<String> values = this.getInsertValues(cliSc, tableColsNames, tableColsTypes, tableColsSizes);
     }
 
-    String colDisplayTemplate = "%s - %s[%s]: ";
+    private final String colDisplayTemplate = "%s - %s[%s]: ";
 
     protected List<String> getInsertValues(Scanner cliSc, List<String> tableColsNames, List<String> tableColsTypes, List<String> tableColsSizes) {
         ArrayList<String> values = new ArrayList<String>();

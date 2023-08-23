@@ -79,7 +79,22 @@ public class App {
             displayCrudMenu(this.dbTables.get(iTable));
             System.out.print("Enter your choice: ");
             crudInput = cliSc.nextInt();
-            System.out.print("This is skipping this");
+            switch (crudInput) {
+                case 1:
+                    this.create(iTable);
+                    break;
+                case 2:
+                    this.read(iTable);
+                    break;
+                case 3:
+                    this.update(iTable);
+                    break;
+                case 4:
+                    this.delete(iTable);
+                    break;
+                default:
+                    break;
+            }
         } while (crudInput != 0);
     }
 
@@ -96,29 +111,19 @@ public class App {
 
     String createTemplate = "INSERT INTO %s VALUES %s";
 
-    protected void create(Connection connection, String table, boolean persist) throws SQLException {
-        // Aborts if connection is closed
-        if (connection.isClosed()) {
-            return;
-        }
-        // Gets user input, depending on chosen table
+    protected void create(int iTable) {
+
+    }
+
+    protected void read(int iTable) {
         
     }
 
-    protected String getColumnsInput(String table) {
-
-        return "";
-    }
-
-    protected void read(Connection connection, String table, boolean persist) {
+    protected void update(int iTable) {
         
     }
 
-    protected void update(Connection connection, String table, boolean persist) {
-        
-    }
-
-    protected void delete(Connection connection, String table, boolean persist) {
+    protected void delete(int iTable) {
         
     }
 

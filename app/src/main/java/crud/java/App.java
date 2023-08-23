@@ -37,7 +37,7 @@ public class App {
             dbTablesSet.beforeFirst();
             dbTablesSet.next();
             this.dbTables = new ArrayList<String>();
-            for (int i = 1; !dbTablesSet.isAfterLast(); i++) {
+            while (!dbTablesSet.isAfterLast()) {
                 this.dbTables.add(dbTablesSet.getString("TABLE_NAME"));
                 dbTablesSet.next();
             }
@@ -48,7 +48,20 @@ public class App {
         return this.dbTables;
     }
 
-    // CLI
+    // CLI - Main Menu
+
+    protected void runMainMenu(Scanner cliSc) {
+        int input = 0;
+        do {
+            this.displayMainMenu();
+            System.out.print("Enter your choice: ");
+            input = cliSc.nextInt();
+            if (input != 0) {
+                this.runCrudMenu(cliSc, input-1);
+                input = cliSc.nextInt();
+            }
+        } while (input != 0);
+    }
 
     protected void displayMainMenu() {
         System.out.println("\nChoose one of the following tables by number to perform operations on or enter '0' to quit.");
@@ -56,6 +69,27 @@ public class App {
         for (int i = 0; i < this.dbTables.size(); i++) {
             System.out.println("\t" + (i+1) + ": " + this.dbTables.get(i));
         }
+    }
+
+    // CLI - Crud Menu
+
+    protected void runCrudMenu(Scanner cliSc, int iTable) {
+        int crudInput = 0;
+        do {
+            displayCrudMenu(this.dbTables.get(iTable));
+            System.out.print("Enter your choice: ");
+            crudInput = cliSc.nextInt();
+            System.out.print("This is skipping this");
+        } while (crudInput != 0);
+    }
+
+    protected void displayCrudMenu(String tableName) {
+        System.out.println(String.format("\nWhich operation would you like to perform on table '%s'?", tableName));
+        System.out.println("\t0: BACK TO MAIN MENU");
+        System.out.println("\t1: Create Item");
+        System.out.println("\t2: Read Item");
+        System.out.println("\t3: Update Item");
+        System.out.println("\t4: Delete Item");
     }
 
     // CRUD
@@ -92,15 +126,10 @@ public class App {
         this.dbCon = new DbConnector();
         this.getDbTables(this.dbCon.getCon());
 
-        int input = 0;
-        Scanner cliScanner = new Scanner(System.in);
-        do {
-            this.displayMainMenu();
-            System.out.print("Enter your choice: ");
-            input = cliScanner.nextInt();
-        } while (input != 0);
+        Scanner cliSc = new Scanner(System.in);
+        this.runMainMenu(cliSc);
+        cliSc.close();
 
-        cliScanner.close();
         this.dbCon.closeDbConnection();
     }
 

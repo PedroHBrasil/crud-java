@@ -6,14 +6,13 @@ package crud.java;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-class AppTest {
+class DBConnectorTest {
 
-    @Test void appLoadDbConnectionProps() {
-        App app = new App();
+    @Test void loadDbConnectionProps() {
+        DbConnector dbCon = new DbConnector();
 
         Properties expected = new Properties();
         expected.setProperty("db.vendor", "mysql");
@@ -23,7 +22,7 @@ class AppTest {
         expected.setProperty("db.username", "user");
         expected.setProperty("db.password", "password");
 
-        Properties result = app.loadDbConnectionProps();
+        Properties result = dbCon.loadDbConnectionProps();
 
         assertEquals(expected.getProperty("db.vendor"), result.getProperty("db.vendor"));
         assertEquals(expected.getProperty("db.ip"), result.getProperty("db.ip"));
@@ -33,15 +32,15 @@ class AppTest {
         // assertEquals(expected.getProperty("db.password"), result.getProperty("db.password"));
     }
 
-    @Test void appGetDbConnection() throws SQLException {
-        App app = new App();
+    @Test void getDbConnection() throws SQLException {
+        DbConnector dbCon = new DbConnector();
 
-        Connection result = app.setDbConnection();
+        dbCon.setDbConnection();
 
-        assertNotNull(result, "connection to database failed");
+        assertNotNull(dbCon.getCon(), "connection to database failed");
 
-        app.closeDbConnection(result);
+        dbCon.closeDbConnection();
 
-        assertTrue(result.isClosed());
+        assertTrue(dbCon.getCon().isClosed());
     }
 }

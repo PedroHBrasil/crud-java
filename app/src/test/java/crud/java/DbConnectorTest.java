@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.sql.SQLException;
 import java.util.Properties;
 
-class DBConnectorTest {
+class DbConnectorTest {
 
     @Test void loadDbConnectionProps() {
         DbConnector dbCon = new DbConnector();

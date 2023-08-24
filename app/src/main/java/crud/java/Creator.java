@@ -36,11 +36,11 @@ public class Creator {
     }
 
     protected static HashMap<String, String> getInsertValues(Scanner sc, Connection con, DbMetadata dbMetadata, String catalog, String tableName) {
-        List<String> tableColsNames = dbMetadata.getTableColMetadata(con, catalog, tableName, "COLUMN_NAME");
-        List<String> tableColsTypes = dbMetadata.getTableColMetadata(con, catalog, tableName, "TYPE_NAME");
-        List<String> tableColsSizes = dbMetadata.getTableColMetadata(con, catalog, tableName, "COLUMN_SIZE");
-        List<String> tableColsNulls = dbMetadata.getTableColMetadata(con, catalog, tableName, "NULLABLE");
-        List<String> tableColsAutos = dbMetadata.getTableColMetadata(con, catalog, tableName, "IS_AUTOINCREMENT");
+        List<String> tableColsNames = dbMetadata.getTableColsMetadata(tableName, "COLUMN_NAME");
+        List<String> tableColsTypes = dbMetadata.getTableColsMetadata(tableName, "TYPE_NAME");
+        List<String> tableColsSizes = dbMetadata.getTableColsMetadata(tableName, "COLUMN_SIZE");
+        List<String> tableColsNulls = dbMetadata.getTableColsMetadata(tableName, "NULLABLE");
+        List<String> tableColsAutos = dbMetadata.getTableColsMetadata(tableName, "IS_AUTOINCREMENT");
 
         HashMap<String, String> values = new HashMap<String, String>();
         int createInput = 0;

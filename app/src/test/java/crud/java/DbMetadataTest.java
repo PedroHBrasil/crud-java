@@ -12,7 +12,25 @@ import java.util.Properties;
 
 class DbMetadataTest {
 
-    @Test void test() {
+    @Test void getDbTables() {
+        DbConnector dbCon = new DbConnector();
+        DbMetadata dbMetadata = new DbMetadata(dbCon.getCon(), dbCon.getConProps().getProperty("db.name"));
 
+        int result = dbMetadata.getTables().size();
+
+        assert(result > 0);
+
+        dbCon.closeDbConnection();
+    }
+
+    @Test void getTableColMetadata() {
+        DbConnector dbCon = new DbConnector();
+        DbMetadata dbMetadata = new DbMetadata(dbCon.getCon(), dbCon.getConProps().getProperty("db.name"));
+
+        int result = dbMetadata.getTableColsMetadata(dbMetadata.getTables().get(0), "COLUMN_NAME").size();
+
+        assert(result > 0);
+
+        dbCon.closeDbConnection();
     }
 }

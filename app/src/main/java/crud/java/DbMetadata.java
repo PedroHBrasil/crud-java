@@ -13,6 +13,8 @@ import java.util.List;
 
 public class DbMetadata {
 
+    private Connection con;
+    private String catalog;
     private List<String> dbTables;
 
     protected List<String> getTables() {
@@ -20,24 +22,26 @@ public class DbMetadata {
     }
 
     DbMetadata(Connection con, String catalog) {
-        this.getDbTables(con, catalog);
+        this.con = con;
+        this.catalog = catalog;
+        this.loadDbTables();
     }
 
-    protected List<String> getDbTables(Connection con, String catalog) {
+    private List<String> loadDbTables() {
         this.dbTables = new ArrayList<String>();
         try {
             // Aborts if connection is closed
-            if (con.isClosed()) {
+            if (this.con.isClosed()) {
                 return null;
             }
             // Gets an array of strings, where each string is the name of a database table
-            DatabaseMetaData dbMeta = con.getMetaData();
+            DatabaseMetaData dbMeta = this.con.getMetaData();
 
             String schemaPattern = null;
             String tableNamePattern = null;
             String[] types = { "TABLE" };
 
-            ResultSet dbTablesSet = dbMeta.getTables(catalog, schemaPattern, tableNamePattern, types);
+            ResultSet dbTablesSet = dbMeta.getTables(this.catalog, schemaPattern, tableNamePattern, types);
 
             this.dbTables = this.resultSetToList(dbTablesSet, "TABLE_NAME");
         } catch (SQLException e) {
@@ -47,73 +51,34 @@ public class DbMetadata {
         return this.dbTables;
     }
 
-    protected List<String> getTableColMetadata(Connection con, String catalog, String tableName, String metadataType) {
-        List<String> tableColsNames = new ArrayList<String>();
+    protected List<String> getTableColsMetadata(String tableName, String metadataType) {
+        List<String> tableColsMetadata = new ArrayList<String>();
         try {
-            ResultSet tableColsSet = this.getTableColsSet(con, catalog, tableName);
-            tableColsNames = this.resultSetToList(tableColsSet, metadataType);
+            ResultSet tableColsSet = this.getTableColsSet(tableName);
+            tableColsMetadata = this.resultSetToList(tableColsSet, metadataType);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
-        return tableColsNames;
-    }
-
-    protected List<String> getTableColNames(Connection con, String catalog, String tableName) {
-        List<String> tableColsNames = new ArrayList<String>();
-        try {
-            ResultSet tableColsSet = this.getTableColsSet(con, catalog, tableName);
-            tableColsNames = this.resultSetToList(tableColsSet, "COLUMN_NAME");
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
-        return tableColsNames;
-    }
-
-    protected List<String> getTableColTypes(Connection con, String catalog, String tableName) {
-        List<String> tableColsTypes = new ArrayList<String>();
-        try {
-            ResultSet tableColsSet = this.getTableColsSet(con, catalog, tableName);
-            tableColsTypes = this.resultSetToList(tableColsSet, "TYPE_NAME");
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
-        return tableColsTypes;
-    }
-
-    protected List<String> getTableColSizes(Connection con, String catalog, String tableName) {
-        List<String> tableColsTypes = new ArrayList<String>();
-        try {
-            ResultSet tableColsSet = this.getTableColsSet(con, catalog, tableName);
-            tableColsTypes = this.resultSetToList(tableColsSet, "COLUMN_SIZE");
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
-        return tableColsTypes;
+        return tableColsMetadata;
     }
 
     // util
 
-    protected ResultSet getTableColsSet(Connection con, String catalog, String tableName) throws SQLException{
+    private ResultSet getTableColsSet(String tableName) throws SQLException{
         ResultSet tableColsSet = null;
-        try {
-            DatabaseMetaData dbMeta = con.getMetaData();
 
-            String schemaPattern = null;
-            String columnNamePattern = null;
+        DatabaseMetaData dbMeta = this.con.getMetaData();
 
-            tableColsSet = dbMeta.getColumns(catalog, schemaPattern, tableName, columnNamePattern);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
+        String schemaPattern = null;
+        String columnNamePattern = null;
+
+        tableColsSet = dbMeta.getColumns(this.catalog, schemaPattern, tableName, columnNamePattern);
 
         return tableColsSet;
     }
 
-    protected List<String> resultSetToList(ResultSet resultSet, String metadataType) throws SQLException {
+    private List<String> resultSetToList(ResultSet resultSet, String metadataType) throws SQLException {
         ArrayList<String> resultList = new ArrayList<String>();
         resultSet.beforeFirst();
         while (resultSet.next()) {

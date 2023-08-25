@@ -24,7 +24,7 @@ public class App {
             input = sc.nextInt();
             if (input > 0) {
                 String tableName = dbMetadata.getTables().get(input-1);
-                CrudCli.runCrudMenu(sc, dbCon.getCon(), dbMetadata, catalog, tableName);
+                CrudCli.runCrudMenu(sc, dbMetadata, tableName);
             }
         } while (input != 0);
 

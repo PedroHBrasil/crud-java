@@ -3,7 +3,6 @@
  */
 package crud.java;
 
-import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -12,7 +11,7 @@ public class CrudCli {
 
     // Crud Menu
 
-    protected static void runCrudMenu(Scanner sc, Connection con, DbMetadata dbMetadata, String catalog, String tableName) {
+    protected static void runCrudMenu(Scanner sc, DbMetadata dbMetadata, String tableName) {
         int crudInput = 0;
         do {
             CrudCli.displayCrudMenu(tableName);
@@ -20,8 +19,9 @@ public class CrudCli {
             crudInput = sc.nextInt();
             switch (crudInput) {
                 case 1:
-                    HashMap<String, String> values = Creator.getInsertValues(sc, con, dbMetadata, catalog, tableName);
-                    Creator.create(con, values, tableName);
+                    System.out.println("Selected Create.");
+                    HashMap<String, String> values = Creator.getInsertValues(sc, dbMetadata, tableName);
+                    Creator.create(dbMetadata.getCon(), values, tableName);
                     break;
                 case 2:
                     
@@ -36,6 +36,9 @@ public class CrudCli {
                     break;
             }
         } while (crudInput != 0);
+
+        System.out.println("Going back to main menu.");
+
     }
 
     protected static void displayCrudMenu(String tableName) {

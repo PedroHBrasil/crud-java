@@ -35,7 +35,7 @@ public class Creator {
         }
     }
 
-    protected static HashMap<String, String> getInsertValues(Scanner sc, Connection con, DbMetadata dbMetadata, String catalog, String tableName) {
+    protected static HashMap<String, String> getInsertValues(Scanner sc, DbMetadata dbMetadata, String tableName) {
         List<String> tableColsNames = dbMetadata.getTableColsMetadata(tableName, "COLUMN_NAME");
         List<String> tableColsTypes = dbMetadata.getTableColsMetadata(tableName, "TYPE_NAME");
         List<String> tableColsSizes = dbMetadata.getTableColsMetadata(tableName, "COLUMN_SIZE");

@@ -27,6 +27,14 @@ public class DbMetadata {
         this.loadDbTables();
     }
 
+    protected Connection getCon() {
+        return this.con;
+    }
+
+    protected String getCatalog() {
+        return this.catalog;
+    }
+
     private List<String> loadDbTables() {
         this.dbTables = new ArrayList<String>();
         try {

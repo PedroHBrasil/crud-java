@@ -44,5 +44,6 @@ class CrudCliTest {
         App.main(new String[0]);
 
         assert(outputStream.toString().trim().contains("Selected Create."));
+        assert(outputStream.toString().trim().contains("Create operation canceled."));
     }
 }

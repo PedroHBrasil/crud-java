@@ -32,7 +32,6 @@ class CrudCliTest {
         App.main(new String[0]);
 
         assert(outputStream.toString().trim().contains("Going back to main menu."));
-        // assert(outputStream.toString().trim().contains("Selected Create."));
     }
 
     @Test void selectCreate() {

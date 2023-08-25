@@ -35,14 +35,13 @@ public class Creator {
         }
     }
 
-    protected static HashMap<String, String> getInsertValues(Scanner sc, DbMetadata dbMetadata, String tableName) {
+    protected static boolean getInsertValues(Scanner sc, DbMetadata dbMetadata, String tableName, HashMap<String, String> values) {
         List<String> tableColsNames = dbMetadata.getTableColsMetadata(tableName, "COLUMN_NAME");
         List<String> tableColsTypes = dbMetadata.getTableColsMetadata(tableName, "TYPE_NAME");
         List<String> tableColsSizes = dbMetadata.getTableColsMetadata(tableName, "COLUMN_SIZE");
         List<String> tableColsNulls = dbMetadata.getTableColsMetadata(tableName, "NULLABLE");
         List<String> tableColsAutos = dbMetadata.getTableColsMetadata(tableName, "IS_AUTOINCREMENT");
 
-        HashMap<String, String> values = new HashMap<String, String>();
         int createInput = 0;
         do {
             List<String> effectiveColsNames = displayInsertMenu(tableName, tableColsNames, tableColsTypes, tableColsSizes, tableColsNulls, tableColsAutos, values);
@@ -54,7 +53,7 @@ public class Creator {
             }
         } while (createInput > 0);
 
-        return values;
+        return (createInput == 0);
     }
 
     private static final String colDisplayTemplate = "\t%d: %s - %s[%s] %s: %s";

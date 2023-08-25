@@ -20,8 +20,13 @@ public class CrudCli {
             switch (crudInput) {
                 case 1:
                     System.out.println("Selected Create.");
-                    HashMap<String, String> values = Creator.getInsertValues(sc, dbMetadata, tableName);
-                    Creator.create(dbMetadata.getCon(), values, tableName);
+                    HashMap<String, String> values = new HashMap<String, String>();
+                    boolean runCreate = Creator.getInsertValues(sc, dbMetadata, tableName, values);
+                    if (runCreate) {
+                        Creator.create(dbMetadata.getCon(), values, tableName);
+                    } else {
+                        System.out.println("Create operation canceled.");
+                    }
                     break;
                 case 2:
                     

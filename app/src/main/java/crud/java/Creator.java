@@ -3,17 +3,16 @@ package crud.java;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-public class Creator {
+public class Creator extends CrudBase {
 
     private static final String createTemplate = "INSERT INTO %s (%s) VALUES (%s)";
 
-    protected static void create(Connection con, HashMap<String, String> values, String tableName) {
+    protected static void create(Connection con, String tableName, HashMap<String, String> values) {
 
         String colsStr = String.join(", ", values.keySet());
         String valuesPlaceHolder = String.join(", ", Collections.nCopies(values.size(), "?"));
@@ -35,49 +34,24 @@ public class Creator {
         }
     }
 
-    protected static boolean getInsertValues(Scanner sc, DbMetadata dbMetadata, String tableName, HashMap<String, String> values) {
+    protected static boolean readInsertParams(Scanner sc, DbMetadata dbMetadata, String tableName, HashMap<String, String> values) {
         List<String> tableColsNames = dbMetadata.getTableColsMetadata(tableName, "COLUMN_NAME");
         List<String> tableColsTypes = dbMetadata.getTableColsMetadata(tableName, "TYPE_NAME");
         List<String> tableColsSizes = dbMetadata.getTableColsMetadata(tableName, "COLUMN_SIZE");
         List<String> tableColsNulls = dbMetadata.getTableColsMetadata(tableName, "NULLABLE");
-        List<String> tableColsAutos = dbMetadata.getTableColsMetadata(tableName, "IS_AUTOINCREMENT");
+        String message = "For table '"+ tableName + "', choose a column to input the value for:";
 
-        int createInput = 0;
+        int input = 0;
         do {
-            List<String> effectiveColsNames = displayInsertMenu(tableName, tableColsNames, tableColsTypes, tableColsSizes, tableColsNulls, tableColsAutos, values);
-            System.out.print("Enter your choice: ");
-            createInput = sc.nextInt();
-            if (createInput > 0) {
-                String colName = effectiveColsNames.get(createInput-1);
+            displayColsMenu(message, tableColsNames, tableColsTypes, tableColsSizes, tableColsNulls, values);
+            input =  readChoice(sc);
+            if (input > 0) {
+                String colName = tableColsNames.get(input-1);
                 Creator.readInsertValue(sc, colName, values);
             }
-        } while (createInput > 0);
+        } while (input > 0);
 
-        return (createInput == 0);
-    }
-
-    private static final String colDisplayTemplate = "\t%d: %s - %s[%s] %s: %s";
-
-    protected static List<String> displayInsertMenu(String tableName, List<String> tableColsNames, List<String> tableColsTypes, List<String> tableColsSizes, List<String> tableColsNulls, List<String> tableColsAutos, HashMap<String, String> values) {
-        List<String> colsNamesEffective = new ArrayList<String>();
-        System.out.println("For table '"+ tableName + "', choose a column to enter a value for:");
-        System.out.println("\t-1: CANCEL");
-        System.out.println("\t0: OK");
-        for (int i = 0; i < tableColsNames.size(); i++) {
-            boolean isColAuto = tableColsAutos.get(i).equals("YES");
-            if (!isColAuto) {
-                String colName = tableColsNames.get(i);
-                String colType = tableColsTypes.get(i);
-                String colSize = tableColsSizes.get(i);
-                String colNull = tableColsNulls.get(i).equals("1") ? "optional" : "required";
-                String colValue = values.containsKey(colName) ? values.get(colName) : "";
-                String colDisplay = String.format(colDisplayTemplate, (colsNamesEffective.size()+1), colName, colType, colSize, colNull, colValue);
-                System.out.println(colDisplay);
-                colsNamesEffective.add(colName);
-            }
-        }
-
-        return colsNamesEffective;
+        return (input == 0);
     }
 
     protected static void readInsertValue(Scanner sc, String colName, HashMap<String, String> values) {

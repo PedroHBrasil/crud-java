@@ -3,7 +3,9 @@
  */
 package crud.java;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
 
@@ -21,15 +23,34 @@ public class CrudCli {
                 case 1:
                     System.out.println("Selected Create.");
                     HashMap<String, String> values = new HashMap<String, String>();
-                    boolean runCreate = Creator.getInsertValues(sc, dbMetadata, tableName, values);
-                    if (runCreate) {
-                        Creator.create(dbMetadata.getCon(), values, tableName);
-                    } else {
-                        System.out.println("Create operation canceled.");
+                    boolean runCreate = Creator.readInsertParams(sc, dbMetadata, tableName, values);
+                    if (!runCreate) {
+                        System.out.println("Operation canceled.");
+                        break;
                     }
+                    Creator.create(dbMetadata.getCon(), tableName, values);
                     break;
                 case 2:
-                    
+                    System.out.println("Selected Read.");
+                    HashMap<String, String> selectedCols = new HashMap<String, String>();
+                    boolean getFilter = Reader.readSelectCols(sc, dbMetadata, tableName, selectedCols);
+                    if (!getFilter) {
+                        System.out.println("Operation canceled.");
+                        break;
+                    }
+                    HashMap<String, String> colsFilters = new HashMap<String, String>();
+                    boolean getFilterStr = Reader.readSelectFilters(sc, dbMetadata, tableName, colsFilters);
+                    if (!getFilterStr) {
+                        System.out.println("Operation canceled.");
+                        break;
+                    }
+                    ArrayList<String> filterStrList = new ArrayList<String>();
+                    boolean runRead = Reader.readFilterString(sc, dbMetadata, tableName, colsFilters, filterStrList);
+                    if (!runRead) {
+                        System.out.println("Operation canceled.");
+                        break;
+                    }
+                    Reader.read(dbMetadata.getCon(), tableName, selectedCols, filterStrList);
                     break;
                 case 3:
                     

@@ -24,10 +24,12 @@ public class App {
             input = sc.nextInt();
             if (input > 0) {
                 String tableName = dbMetadata.getTables().get(input-1);
+                System.out.println("Accessing table " + tableName + "'s CRUD menu.");
                 CrudCli.runCrudMenu(sc, dbMetadata, tableName);
             }
         } while (input != 0);
 
+        System.out.println("Exiting.");
         sc.close();
         dbCon.closeDbConnection();
     }

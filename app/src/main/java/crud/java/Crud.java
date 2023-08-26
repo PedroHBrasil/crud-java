@@ -1,6 +1,5 @@
 package crud.java;
 
-import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,6 +18,7 @@ class Crud {
     private static final String createTemplate = "INSERT INTO %s (%s) VALUES (%s)";
     private static final String readTemplate = "SELECT %s FROM %s WHERE (%s)";
     private static final String updateTemplate = "UPDATE %s SET %s WHERE (%s)";
+    private static final String deleteTemplate = "DELETE FROM %s WHERE (%s)";
 
     // Create
 
@@ -103,6 +103,25 @@ class Crud {
         }
     }
 
+    protected static void delete(Connection con, String tableName, ArrayList<String> filterStrList) {
+
+        String insertString = String.format(deleteTemplate, tableName, filterStrList.get(0));
+
+        try {
+            PreparedStatement prepStatement = con.prepareStatement(insertString);
+            for (int i = 1; i < filterStrList.size(); i++) {
+                String value = filterStrList.get(i);
+                prepStatement.setString(i, value);
+            }
+            System.out.println("Running query: " + prepStatement.toString());
+            int rowsAffected = prepStatement.executeUpdate();
+            System.out.println(rowsAffected + " row(s) deleted successfully.");
+
+            prepStatement.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
     // Display
 
     private static final String colDisplayTemplate = "\t%d: %s - %s[%s] %s: %s";
@@ -136,19 +155,12 @@ class Crud {
     private static ArrayList<HashMap<String, String>> resultSetToArrayListOfHashMap(ResultSet result, Set<String> selectedCols) throws SQLException {
         ArrayList<HashMap<String, String>> resultsStr = new ArrayList<HashMap<String, String>>();
         while (result.next()) {
-            System.out.println("There's a next result");
             HashMap<String, String> curResults = new HashMap<String, String>();
             for (String colName : selectedCols) {
                 String curResult = result.getString(colName);
                 curResults.put(colName, curResult);
             }
-            if (curResults.isEmpty()) {
-                System.out.println("resultsStr was not filled");
-            }
             resultsStr.add(curResults);
-        }
-        if (resultsStr.isEmpty()) {
-            System.out.println("resultsStr was not filled");
         }
 
         return resultsStr;

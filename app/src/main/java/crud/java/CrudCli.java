@@ -5,7 +5,6 @@ package crud.java;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Scanner;
 
 
@@ -30,7 +29,7 @@ class CrudCli {
                     update(sc, dbMetadata, tableName);
                     break;
                 case 4:
-                    
+                    delete(sc, dbMetadata, tableName);
                     break;
                 default:
                     break;
@@ -114,5 +113,35 @@ class CrudCli {
             return;
         }
         Crud.update(dbMetadata.getCon(), tableName, values, filterStrList);
+    }
+
+    private static void delete(Scanner sc, DbMetadata dbMetadata, String tableName) {
+        System.out.println("Selected Update.");
+        HashMap<String, String> selectedCols = new HashMap<String, String>();
+        boolean getFilter = Crud.askSelectCols(sc, dbMetadata, tableName, selectedCols);
+        if (!getFilter) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        HashMap<String, String> colsFilters = new HashMap<String, String>();
+        boolean getFilterStr = Crud.askFilters(sc, dbMetadata, tableName, colsFilters);
+        if (!getFilterStr) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        ArrayList<String> filterStrList = new ArrayList<String>();
+        boolean runRead = Crud.askFilterArrangement(sc, dbMetadata, tableName, colsFilters, filterStrList);
+        if (!runRead) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        Crud.read(dbMetadata.getCon(), tableName, selectedCols.keySet(), filterStrList);
+        System.out.print("You are about to delete the displayed registries. To cancel, enter -1: ");
+        boolean runDelete = sc.nextInt() != -1 ? true : false;
+        if (!runDelete) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        Crud.delete(dbMetadata.getCon(), tableName, filterStrList);
     }
 }

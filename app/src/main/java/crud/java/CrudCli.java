@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Scanner;
 
 
-public class CrudCli {
+class CrudCli {
 
     // Crud Menu
 
@@ -21,39 +21,13 @@ public class CrudCli {
             crudInput = sc.nextInt();
             switch (crudInput) {
                 case 1:
-                    System.out.println("Selected Create.");
-                    HashMap<String, String> values = new HashMap<String, String>();
-                    boolean runCreate = Creator.readInsertParams(sc, dbMetadata, tableName, values);
-                    if (!runCreate) {
-                        System.out.println("Operation canceled.");
-                        break;
-                    }
-                    Creator.create(dbMetadata.getCon(), tableName, values);
+                    create(sc, dbMetadata, tableName);
                     break;
                 case 2:
-                    System.out.println("Selected Read.");
-                    HashMap<String, String> selectedCols = new HashMap<String, String>();
-                    boolean getFilter = Reader.readSelectCols(sc, dbMetadata, tableName, selectedCols);
-                    if (!getFilter) {
-                        System.out.println("Operation canceled.");
-                        break;
-                    }
-                    HashMap<String, String> colsFilters = new HashMap<String, String>();
-                    boolean getFilterStr = Reader.readSelectFilters(sc, dbMetadata, tableName, colsFilters);
-                    if (!getFilterStr) {
-                        System.out.println("Operation canceled.");
-                        break;
-                    }
-                    ArrayList<String> filterStrList = new ArrayList<String>();
-                    boolean runRead = Reader.readFilterString(sc, dbMetadata, tableName, colsFilters, filterStrList);
-                    if (!runRead) {
-                        System.out.println("Operation canceled.");
-                        break;
-                    }
-                    Reader.read(dbMetadata.getCon(), tableName, selectedCols.keySet(), filterStrList);
+                    read(sc, dbMetadata, tableName);
                     break;
                 case 3:
-                    
+                    update(sc, dbMetadata, tableName);
                     break;
                 case 4:
                     
@@ -76,6 +50,69 @@ public class CrudCli {
         System.out.println("\t4: Delete Item");
     }
 
-    // Create Menu
+    // Crud Callers
 
+    private static void create(Scanner sc, DbMetadata dbMetadata, String tableName) {
+        System.out.println("Selected Create.");
+        HashMap<String, String> values = new HashMap<String, String>();
+        boolean runCreate = Crud.askForColsValues(sc, dbMetadata, tableName, values);
+        if (!runCreate) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        Crud.create(dbMetadata.getCon(), tableName, values);
+    }
+
+    private static void read(Scanner sc, DbMetadata dbMetadata, String tableName) {
+        System.out.println("Selected Read.");
+        HashMap<String, String> selectedCols = new HashMap<String, String>();
+        boolean getFilter = Crud.askSelectCols(sc, dbMetadata, tableName, selectedCols);
+        if (!getFilter) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        HashMap<String, String> colsFilters = new HashMap<String, String>();
+        boolean getFilterStr = Crud.askFilters(sc, dbMetadata, tableName, colsFilters);
+        if (!getFilterStr) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        ArrayList<String> filterStrList = new ArrayList<String>();
+        boolean runRead = Crud.askFilterArrangement(sc, dbMetadata, tableName, colsFilters, filterStrList);
+        if (!runRead) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        Crud.read(dbMetadata.getCon(), tableName, selectedCols.keySet(), filterStrList);
+    }
+
+    private static void update(Scanner sc, DbMetadata dbMetadata, String tableName) {
+        System.out.println("Selected Update.");
+        HashMap<String, String> selectedCols = new HashMap<String, String>();
+        boolean getFilter = Crud.askSelectCols(sc, dbMetadata, tableName, selectedCols);
+        if (!getFilter) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        HashMap<String, String> colsFilters = new HashMap<String, String>();
+        boolean getFilterStr = Crud.askFilters(sc, dbMetadata, tableName, colsFilters);
+        if (!getFilterStr) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        ArrayList<String> filterStrList = new ArrayList<String>();
+        boolean runAskValues = Crud.askFilterArrangement(sc, dbMetadata, tableName, colsFilters, filterStrList);
+        if (!runAskValues) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        Crud.read(dbMetadata.getCon(), tableName, selectedCols.keySet(), filterStrList);
+        HashMap<String, String> values = new HashMap<String, String>();
+        boolean runUpdate = Crud.askForColsValues(sc, dbMetadata, tableName, values);
+        if (!runUpdate) {
+            System.out.println("Operation canceled.");
+            return;
+        }
+        Crud.update(dbMetadata.getCon(), tableName, values, filterStrList);
+    }
 }

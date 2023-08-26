@@ -5,18 +5,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Reader extends CrudBase {
 
     private static final String readTemplate = "SELECT %s FROM %s WHERE (%s)";
 
-    protected static void read(Connection con, String tableName, HashMap<String, String> selectedCols, ArrayList<String> filterStrList) {
+    protected static void read(Connection con, String tableName, Set<String> selectedCols, ArrayList<String> filterStrList) {
 
-        String colsStr = String.join(", ", selectedCols.keySet());
+        String colsStr = String.join(", ", selectedCols);
         String insertString = String.format(readTemplate, colsStr, tableName, filterStrList.get(0));
 
         try {
@@ -27,64 +27,7 @@ public class Reader extends CrudBase {
             }
             System.out.println("Running query: " + prepStatement.toString());
             ResultSet result = prepStatement.executeQuery();
-            // result.beforeFirst();
-
-            // Converts resultset to a hashmap of array lists
-            ArrayList<HashMap<String, String>> resultsStr = new ArrayList<HashMap<String, String>>();
-            while (result.next()) {
-                System.out.println("There's a next result");
-                HashMap<String, String> curResults = new HashMap<String, String>();
-                for (String colName : selectedCols.keySet()) {
-                    String curResult = result.getString(colName);
-                    curResults.put(colName, curResult);
-                }
-                if (curResults.isEmpty()) {
-                    System.out.println("resultsStr was not filled");
-                }
-                resultsStr.add(curResults);
-            }
-            if (resultsStr.isEmpty()) {
-                System.out.println("resultsStr was not filled");
-            }
-
-            // Gets number of characters per column
-            HashMap<String, Integer> nCharsPerCol = new HashMap<String, Integer>();
-            for (String colName : selectedCols.keySet()) {
-                nCharsPerCol.put(colName, colName.length());
-            }
-            for (HashMap<String, String> resultLine : resultsStr) {
-                for (String colName : selectedCols.keySet()) {
-                    int curLength = resultLine.get(colName).length();
-                    if (curLength > nCharsPerCol.get(colName)) {
-                        nCharsPerCol.put(colName, curLength);
-                    }
-                }
-            }
-
-            // Prints heading of results table
-            System.out.print("|");
-            for (String colName : selectedCols.keySet()) {
-                String fmtColName = String.format("%-" + nCharsPerCol.get(colName) + "s", colName);
-                System.out.print(" " + fmtColName + " |");
-            }
-            System.out.print("\n");
-            // Prints heading underline line
-            System.out.print("|");
-            for (String colName : selectedCols.keySet()) {
-                String dashLines = "-".repeat(nCharsPerCol.get(colName)+2);
-                System.out.print(dashLines + "|");
-            }
-            System.out.print("\n");
-            // Prints results lines
-            for (int i = 0; i < resultsStr.size(); i++) {
-                System.out.print("|");
-                for (String colName : selectedCols.keySet()) {
-                    String curResult = resultsStr.get(i).get(colName);
-                    String fmtCurResult = String.format("%-" + nCharsPerCol.get(colName) + "s", curResult);
-                    System.out.print(" " + fmtCurResult + " |");
-                }
-                System.out.print("\n");
-            }
+            Reader.displayQueryResults(result, selectedCols);
 
             prepStatement.close();
         } catch (SQLException e) {
@@ -173,28 +116,24 @@ public class Reader extends CrudBase {
     }
 
     protected static ArrayList<String> makeFilterStringList(HashMap<String, String> colsFilters, String filterStr, List<String> tableColsNames, ArrayList<String> filterStrList) {
-        // Generates main filter string
-        for (int i = 1; i <= tableColsNames.size(); i++) {
-            String colName = tableColsNames.get(i-1);
-            String filter = colsFilters.get(colName);
-            if (filter == null) {
-                continue;
+        filterStrList.add("TO BE REPlACED");
+        String[] splittedFilterStr = filterStr.split(" ");
+        for (int i = 0; i < splittedFilterStr.length; i++) {
+            String element = splittedFilterStr[i];
+            if (element.matches("^[1-9][0-9]*$")) { // is positive integer
+                int iCol = Integer.parseInt(element) - 1;
+                String colName = tableColsNames.get(iCol);
+
+                String filter = colsFilters.get(colName);
+                String value = filter.trim().split(" ")[1];
+                filterStrList.add(value);
+
+                String operator = filter.trim().split(" ")[0];
+                String placeHolder = colName + " " + operator + " ? ";
+                splittedFilterStr[i] = placeHolder;
             }
-            String operator = filter.trim().split(" ")[0];
-            String placeHolder = colName + " " + operator + " ? ";
-            filterStr = filterStr.replace(String.valueOf(i), placeHolder);
         }
-        // Generates array of main string and filter values
-        filterStrList.add(filterStr);
-        for (int i = 1; i <= tableColsNames.size(); i++) {
-            String colName = tableColsNames.get(i-1);
-            String filter = colsFilters.get(colName);
-            if (filter == null) {
-                continue;
-            }
-            String value = filter.trim().split(" ")[1];
-            filterStrList.add(value);
-        }
+        filterStrList.set(0, String.join(" ", splittedFilterStr));
 
         return filterStrList;
     }

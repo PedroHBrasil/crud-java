@@ -50,7 +50,7 @@ public class CrudCli {
                         System.out.println("Operation canceled.");
                         break;
                     }
-                    Reader.read(dbMetadata.getCon(), tableName, selectedCols, filterStrList);
+                    Reader.read(dbMetadata.getCon(), tableName, selectedCols.keySet(), filterStrList);
                     break;
                 case 3:
                     

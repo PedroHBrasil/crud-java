@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -26,7 +27,64 @@ public class Reader extends CrudBase {
             }
             System.out.println("Running query: " + prepStatement.toString());
             ResultSet result = prepStatement.executeQuery();
-            System.out.println(result.toString());
+            // result.beforeFirst();
+
+            // Converts resultset to a hashmap of array lists
+            ArrayList<HashMap<String, String>> resultsStr = new ArrayList<HashMap<String, String>>();
+            while (result.next()) {
+                System.out.println("There's a next result");
+                HashMap<String, String> curResults = new HashMap<String, String>();
+                for (String colName : selectedCols.keySet()) {
+                    String curResult = result.getString(colName);
+                    curResults.put(colName, curResult);
+                }
+                if (curResults.isEmpty()) {
+                    System.out.println("resultsStr was not filled");
+                }
+                resultsStr.add(curResults);
+            }
+            if (resultsStr.isEmpty()) {
+                System.out.println("resultsStr was not filled");
+            }
+
+            // Gets number of characters per column
+            HashMap<String, Integer> nCharsPerCol = new HashMap<String, Integer>();
+            for (String colName : selectedCols.keySet()) {
+                nCharsPerCol.put(colName, colName.length());
+            }
+            for (HashMap<String, String> resultLine : resultsStr) {
+                for (String colName : selectedCols.keySet()) {
+                    int curLength = resultLine.get(colName).length();
+                    if (curLength > nCharsPerCol.get(colName)) {
+                        nCharsPerCol.put(colName, curLength);
+                    }
+                }
+            }
+
+            // Prints heading of results table
+            System.out.print("|");
+            for (String colName : selectedCols.keySet()) {
+                String fmtColName = String.format("%-" + nCharsPerCol.get(colName) + "s", colName);
+                System.out.print(" " + fmtColName + " |");
+            }
+            System.out.print("\n");
+            // Prints heading underline line
+            System.out.print("|");
+            for (String colName : selectedCols.keySet()) {
+                String dashLines = "-".repeat(nCharsPerCol.get(colName)+2);
+                System.out.print(dashLines + "|");
+            }
+            System.out.print("\n");
+            // Prints results lines
+            for (int i = 0; i < resultsStr.size(); i++) {
+                System.out.print("|");
+                for (String colName : selectedCols.keySet()) {
+                    String curResult = resultsStr.get(i).get(colName);
+                    String fmtCurResult = String.format("%-" + nCharsPerCol.get(colName) + "s", curResult);
+                    System.out.print(" " + fmtCurResult + " |");
+                }
+                System.out.print("\n");
+            }
 
             prepStatement.close();
         } catch (SQLException e) {
